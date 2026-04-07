@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sally — Your Voice Profile Builder</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --ink: #1a1410; --paper: #f5f0e8; --accent: #8b4513;
+    --accent-light: #c17a3a; --muted: #7a6e62; --rule: #d4c9b8; --success: #3d6b4f;
+  }
+  html { font-size: 16px; scroll-behavior: smooth; }
+  body {
+    background: var(--paper); color: var(--ink);
+    font-family: 'DM Sans', sans-serif; font-weight: 300; min-height: 100vh;
+    background-image: repeating-linear-gradient(0deg, transparent, transparent 27px, rgba(139,69,19,0.06) 27px, rgba(139,69,19,0.06) 28px);
+    background-attachment: fixed;
+  }
+  .shell { max-width: 720px; margin: 0 auto; padding: 48px 24px 80px; }
+  .wordmark { font-family: 'Playfair Display', serif; font-size: 2.8rem; letter-spacing: -0.02em; color: var(--accent); line-height: 1; margin-bottom: 4px; }
+  .wordmark em { font-style: italic; font-weight: 400; }
+  .tagline { font-family: 'DM Mono', monospace; font-size: 0.72rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--muted); margin-bottom: 40px; }
+  .progress-bar { height: 2px; background: var(--rule); border-radius: 1px; margin-bottom: 36px; overflow: hidden; }
+  .progress-fill { height: 100%; background: var(--accent); border-radius: 1px; transition: width 0.4s ease; }
+  .step { display: none; animation: fadeUp 0.35s ease; }
+  .step.active { display: block; }
+  @keyframes fadeUp { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+  .step-label { font-family: 'DM Mono', monospace; font-size: 0.65rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--muted); margin-bottom: 12px; }
+  h2 { font-family: 'Playfair Display', serif; font-size: 1.6rem; font-weight: 600; line-height: 1.25; margin-bottom: 12px; }
+  p.body { font-size: 0.95rem; line-height: 1.7; color: #3a3028; margin-bottom: 16px; }
+  label { display: block; font-size: 0.78rem; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; margin-top: 20px; }
+  input[type="text"], textarea { width: 100%; background: white; border: 1px solid var(--rule); border-radius: 4px; padding: 10px 14px; font-family: 'DM Sans', sans-serif; font-size: 0.95rem; color: var(--ink); outline: none; transition: border-color 0.2s; }
+  input[type="text"]:focus, textarea:focus { border-color: var(--accent-light); }
+  textarea { resize: vertical; min-height: 100px; line-height: 1.6; }
+  .callout { background: rgba(139,69,19,0.06); border-left: 3px solid var(--accent-light); padding: 14px 18px; border-radius: 0 4px 4px 0; margin: 16px 0 20px; font-size: 0.88rem; line-height: 1.7; color: #3a3028; }
+  .chip-grid { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+  .chip { padding: 6px 14px; border: 1px solid var(--rule); border-radius: 20px; font-size: 0.85rem; background: white; cursor: pointer; transition: all 0.15s; user-select: none; }
+  .chip.selected { background: var(--accent); color: white; border-color: var(--accent); }
+  .chip-add-row { display: flex; gap: 8px; margin-top: 10px; }
+  .chip-add-row input { flex: 1; }
+  .chip-add-row button { white-space: nowrap; padding: 10px 16px; background: transparent; border: 1px solid var(--rule); border-radius: 4px; font-size: 0.85rem; cursor: pointer; color: var(--muted); transition: all 0.15s; }
+  .chip-add-row button:hover { border-color: var(--accent); color: var(--accent); }
+  .format-block { margin-bottom: 20px; }
+  .format-block-label { font-size: 0.9rem; font-weight: 500; color: var(--ink); margin-bottom: 6px; padding-bottom: 4px; border-bottom: 1px solid var(--rule); }
+  .level-def-row { display: flex; gap: 10px; align-items: flex-start; margin-bottom: 8px; }
+  .level-def-num { font-family: 'Playfair Display', serif; font-size: 1.1rem; color: var(--accent); min-width: 24px; padding-top: 10px; text-align: right; }
+  .level-def-row input { flex: 1; }
+  .level-display { display: flex; align-items: baseline; gap: 12px; margin-bottom: 8px; }
+  .level-number { font-family: 'Playfair Display', serif; font-size: 3rem; line-height: 1; color: var(--accent); }
+  .level-desc-text { font-size: 0.9rem; color: var(--muted); font-style: italic; }
+  input[type="range"] { -webkit-appearance: none; width: 100%; height: 4px; background: var(--rule); border-radius: 2px; outline: none; margin: 12px 0; }
+  input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 20px; height: 20px; border-radius: 50%; background: var(--accent); cursor: pointer; transition: transform 0.1s; }
+  input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.2); }
+  .level-labels { display: flex; justify-content: space-between; font-family: 'DM Mono', monospace; font-size: 0.65rem; color: var(--muted); }
+  .btn { display: inline-block; padding: 12px 28px; border-radius: 4px; font-size: 0.9rem; font-weight: 500; cursor: pointer; border: none; transition: all 0.2s; font-family: 'DM Sans', sans-serif; }
+  .btn-primary { background: var(--accent); color: white; }
+  .btn-primary:hover { background: #6d3410; }
+  .btn-secondary { background: transparent; color: var(--accent); border: 1px solid var(--accent); }
+  .btn-secondary:hover { background: rgba(139,69,19,0.07); }
+  .btn-ghost { background: transparent; color: var(--muted); padding: 12px 0; font-size: 0.85rem; }
+  .btn-ghost:hover { color: var(--ink); }
+  .btn-row { display: flex; gap: 12px; align-items: center; margin-top: 28px; flex-wrap: wrap; }
+  .sample-card { background: white; border: 1px solid var(--rule); border-radius: 6px; padding: 16px 18px; margin-bottom: 10px; position: relative; }
+  .sample-card-meta { font-family: 'DM Mono', monospace; font-size: 0.68rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+  .sample-card-text { font-size: 0.9rem; line-height: 1.6; color: var(--ink); white-space: pre-wrap; }
+  .sample-card-delete { position: absolute; top: 10px; right: 12px; background: none; border: none; color: var(--rule); cursor: pointer; font-size: 1rem; transition: color 0.15s; }
+  .sample-card-delete:hover { color: #b04040; }
+  .empty-state { text-align: center; padding: 40px 20px; color: var(--muted); font-style: italic; font-size: 0.9rem; border: 1px dashed var(--rule); border-radius: 6px; margin-bottom: 20px; }
+  .sample-entry-box { background: white; border: 1px solid var(--rule); border-radius: 6px; padding: 20px; margin-bottom: 20px; }
+  .output-block { background: white; border: 1px solid var(--rule); border-radius: 6px; padding: 28px; font-family: 'DM Mono', monospace; font-size: 0.78rem; line-height: 1.9; white-space: pre-wrap; word-break: break-word; color: var(--ink); max-height: 600px; overflow-y: auto; }
+  .copy-confirm { display: none; font-family: 'DM Mono', monospace; font-size: 0.72rem; color: var(--success); letter-spacing: 0.08em; text-transform: uppercase; margin-left: 12px; }
+  .copy-confirm.show { display: inline; }
+  @media (max-width: 500px) { .wordmark { font-size: 2rem; } h2 { font-size: 1.3rem; } .level-number { font-size: 2.2rem; } }
+</style>
+</head>
+<body>
+<div class="shell">
+  <div class="wordmark"><em>Sally</em></div>
+  <div class="tagline">Your Voice Profile Builder</div>
+  <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+
+  <!-- STEP 1: INTRO -->
+  <div class="step active" id="step-1">
+    <div class="step-label">Introduction</div>
+    <h2>What is Sally?</h2>
+    <p class="body">Sally is a voice profile. It's a collection of real writing samples from your life, organized by who you're talking to and how formal you're being.</p>
+    <p class="body">Once your Sally is built, it can teach an AI writing assistant to sound like you. Not a generic version of professional. Not a chatbot. You.</p>
+    <div class="callout">
+      The way you text your best friend and the way you email your biggest client are both you. Sally captures both ends of that range and everything in between. You define what each level means. You describe how each format works. The whole thing is built around how you actually write.
+    </div>
+    <p class="body">This wizard walks you through it in five steps. There are no wrong answers. The more honest your samples, the better Sally works.</p>
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick="goTo(2)">Let's build it</button>
+    </div>
+  </div>
+
+  <!-- STEP 2: NAME -->
+  <div class="step" id="step-2">
+    <div class="step-label">Step 1 of 5</div>
+    <h2>First, who are we building this for?</h2>
+    <p class="body">This goes into your profile so the person helping you set this up knows whose voice they're working with.</p>
+    <label>Your name</label>
+    <input type="text" id="clientName" placeholder="First name is fine" />
+    <label>Your work or role (optional)</label>
+    <input type="text" id="clientRole" placeholder="e.g. farm owner, real estate agent, nonprofit director..." />
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick="goTo(3)">Next</button>
+      <button class="btn btn-ghost" onclick="goTo(1)">Back</button>
+    </div>
+  </div>
+
+  <!-- STEP 3: COMM TYPES -->
+  <div class="step" id="step-3">
+    <div class="step-label">Step 2 of 5</div>
+    <h2>What kinds of writing do you do?</h2>
+    <p class="body">Pick everything that applies. These become the categories your samples will live in. Add your own if something isn't listed.</p>
+    <div class="chip-grid" id="commTypeChips">
+      <div class="chip" onclick="toggleChip(this)">Texts to family</div>
+      <div class="chip" onclick="toggleChip(this)">Texts to friends</div>
+      <div class="chip" onclick="toggleChip(this)">Emails to clients</div>
+      <div class="chip" onclick="toggleChip(this)">Emails to vendors</div>
+      <div class="chip" onclick="toggleChip(this)">Emails to my team</div>
+      <div class="chip" onclick="toggleChip(this)">Facebook posts</div>
+      <div class="chip" onclick="toggleChip(this)">Instagram captions</div>
+      <div class="chip" onclick="toggleChip(this)">LinkedIn posts</div>
+      <div class="chip" onclick="toggleChip(this)">Newsletter</div>
+      <div class="chip" onclick="toggleChip(this)">Customer service replies</div>
+      <div class="chip" onclick="toggleChip(this)">Proposals or quotes</div>
+      <div class="chip" onclick="toggleChip(this)">Board or committee emails</div>
+      <div class="chip" onclick="toggleChip(this)">Grant writing</div>
+      <div class="chip" onclick="toggleChip(this)">Direct messages</div>
+    </div>
+    <div class="chip-add-row">
+      <input type="text" id="customChipInput" placeholder="Add your own..." onkeydown="if(event.key==='Enter')addCustomChip()" />
+      <button onclick="addCustomChip()">+ Add</button>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick="goTo(4)">Next</button>
+      <button class="btn btn-ghost" onclick="goTo(2)">Back</button>
+    </div>
+  </div>
+
+  <!-- STEP 4: FORMAT LIBRARY -->
+  <div class="step" id="step-4">
+    <div class="step-label">Step 3 of 5</div>
+    <h2>Describe how each format works for you.</h2>
+    <p class="body">For each type of writing you selected, describe how you like to structure it. How does it open? What goes in the middle? How does it close? How long is it usually?</p>
+    <p class="body">Nothing here is required. Skip anything that doesn't feel relevant.</p>
+    <div class="callout">
+      Example — Newsletter: "I open with something personal that happened that week. Then the main topic. I close with a question or a call to action. Usually 300 to 500 words."<br><br>
+      Example — Facebook post: "Short. One idea. No hashtags. Sometimes a question at the end."<br><br>
+      Example — Client email: "I lead with their name, acknowledge what they reached out about, then get to the point. I always close with a next step."
+    </div>
+    <div id="formatDefsContainer" style="margin-top: 8px;"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick="goTo(5)">Next</button>
+      <button class="btn btn-ghost" onclick="goTo(3)">Back</button>
+    </div>
+  </div>
+
+  <!-- STEP 5: LEVEL DEFS -->
+  <div class="step" id="step-5">
+    <div class="step-label">Step 4 of 5</div>
+    <h2>Define your levels.</h2>
+    <p class="body">Think of 1 as the most casual writing you do and 10 as the most formal. Fill in the ones that feel real to you. Leave the rest blank.</p>
+    <div class="callout">
+      Level 1 — Texting my kids or my partner. No filter.<br>
+      Level 4 — Friendly email to someone I know professionally.<br>
+      Level 7 — A proposal or a pitch. Buttoned up.<br>
+      Level 10 — Legal or official documentation.
+    </div>
+    <div id="levelDefsContainer" style="margin-top: 20px;"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick="goTo(6)">Next</button>
+      <button class="btn btn-ghost" onclick="goTo(4)">Back</button>
+    </div>
+  </div>
+
+  <!-- STEP 6: SAMPLES -->
+  <div class="step" id="step-6">
+    <div class="step-label">Step 5 of 5</div>
+    <h2>Now paste in your samples.</h2>
+    <p class="body">Find something you actually wrote. A text, an email, a post. Copy it and paste it here. Then tell us what it was, who it was for, and what level it feels like.</p>
+    <p class="body">Add as many as you want. Aim for at least five. The more you add, the more accurate your Sally will be.</p>
+    <div id="samplesList"></div>
+    <div class="sample-entry-box">
+      <label>Paste your sample here</label>
+      <textarea id="sampleText" placeholder="Paste the actual text you wrote..."></textarea>
+      <label>What was this?</label>
+      <input type="text" id="sampleContext" placeholder="e.g. Email to my landlord, text to my sister, Facebook post about the farm..." />
+      <label>Who were you writing to?</label>
+      <input type="text" id="sampleRecipient" placeholder="e.g. My business partner, a new customer, my mom..." />
+      <label>What level does this feel like?</label>
+      <div class="level-display">
+        <div class="level-number" id="sliderNum">5</div>
+        <div class="level-desc-text" id="sliderDesc">Drag to set the level</div>
+      </div>
+      <input type="range" min="1" max="10" value="5" id="levelSlider" oninput="updateSlider()" />
+      <div class="level-labels"><span>1 — Most casual</span><span>10 — Most formal</span></div>
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="addSample()">Add this sample</button>
+        <button class="btn btn-ghost" onclick="clearSampleForm()">Clear</button>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick="goTo(7)">I'm done — build my Sally</button>
+      <button class="btn btn-ghost" onclick="goTo(5)">Back</button>
+    </div>
+  </div>
+
+  <!-- STEP 7: OUTPUT -->
+  <div class="step" id="step-7">
+    <div class="step-label">Your Sally Profile</div>
+    <h2>Here's your Sally.</h2>
+    <p class="body">Copy this and send it to whoever is setting up your AI writing assistant. They'll use it to make sure the output sounds like you.</p>
+    <div class="btn-row" style="margin-top:0; margin-bottom:16px;">
+      <button class="btn btn-primary" onclick="copyAll()">Copy full profile</button>
+      <span class="copy-confirm" id="copyConfirm">Copied.</span>
+      <button class="btn btn-ghost" onclick="goTo(6)">Go back and add more</button>
+    </div>
+    <div class="output-block" id="outputBlock"></div>
+    <div class="btn-row">
+      <button class="btn btn-secondary" onclick="copyAll()">Copy again</button>
+    </div>
+  </div>
+
+</div>
+<script>
+  const TOTAL = 7;
+  const state = { current: 1, samples: [], levelDefs: {}, formatDefs: {} };
+
+  function updateProgress() {
+    document.getElementById('progressFill').style.width = ((state.current - 1) / (TOTAL - 1) * 100) + '%';
+  }
+
+  function goTo(n) {
+    if (n === 4) buildFormatDefs();
+    if (n === 5) { saveFormatDefs(); buildLevelDefs(); }
+    if (n === 7) { saveLevelDefs(); buildOutput(); }
+    document.getElementById('step-' + state.current).classList.remove('active');
+    state.current = n;
+    document.getElementById('step-' + n).classList.add('active');
+    updateProgress();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function toggleChip(el) { el.classList.toggle('selected'); }
+
+  function addCustomChip() {
+    const inp = document.getElementById('customChipInput');
+    const val = inp.value.trim();
+    if (!val) return;
+    const chip = document.createElement('div');
+    chip.className = 'chip selected';
+    chip.textContent = val;
+    chip.onclick = function() { toggleChip(this); };
+    document.getElementById('commTypeChips').appendChild(chip);
+    inp.value = '';
+  }
+
+  function getSelectedCommTypes() {
+    return [...document.querySelectorAll('#commTypeChips .chip.selected')].map(c => c.textContent);
+  }
+
+  function buildFormatDefs() {
+    const types = getSelectedCommTypes();
+    const container = document.getElementById('formatDefsContainer');
+    const existing = {};
+    container.querySelectorAll('.format-block').forEach(b => {
+      const lbl = b.querySelector('.format-block-label');
+      const ta = b.querySelector('textarea');
+      if (lbl && ta) existing[lbl.textContent] = ta.value;
+    });
+    container.innerHTML = '';
+    if (types.length === 0) {
+      container.innerHTML = '<p class="body" style="color:var(--muted);font-style:italic;">No communication types selected yet. Go back and pick a few.</p>';
+      return;
+    }
+    types.forEach(t => {
+      const block = document.createElement('div');
+      block.className = 'format-block';
+      const lbl = document.createElement('div');
+      lbl.className = 'format-block-label';
+      lbl.textContent = t;
+      const ta = document.createElement('textarea');
+      ta.style.minHeight = '80px';
+      ta.placeholder = 'How do you structure this? How does it open, what goes in the middle, how does it close, how long is it usually?';
+      ta.value = state.formatDefs[t] || existing[t] || '';
+      block.appendChild(lbl);
+      block.appendChild(ta);
+      container.appendChild(block);
+    });
+  }
+
+  function saveFormatDefs() {
+    document.querySelectorAll('#formatDefsContainer .format-block').forEach(b => {
+      const lbl = b.querySelector('.format-block-label');
+      const ta = b.querySelector('textarea');
+      if (lbl && ta) state.formatDefs[lbl.textContent] = ta.value.trim();
+    });
+  }
+
+  function buildLevelDefs() {
+    const container = document.getElementById('levelDefsContainer');
+    container.innerHTML = '';
+    for (let i = 1; i <= 10; i++) {
+      const row = document.createElement('div');
+      row.className = 'level-def-row';
+      const num = document.createElement('div');
+      num.className = 'level-def-num';
+      num.textContent = i;
+      const inp = document.createElement('input');
+      inp.type = 'text';
+      inp.id = 'levelDef' + i;
+      inp.placeholder = 'Describe level ' + i + ' in your own words (optional)';
+      inp.value = state.levelDefs[i] || '';
+      inp.oninput = function() { state.levelDefs[i] = this.value; };
+      row.appendChild(num);
+      row.appendChild(inp);
+      container.appendChild(row);
+    }
+  }
+
+  function saveLevelDefs() {
+    for (let i = 1; i <= 10; i++) {
+      const el = document.getElementById('levelDef' + i);
+      if (el) state.levelDefs[i] = el.value.trim();
+    }
+  }
+
+  function updateSlider() {
+    const val = parseInt(document.getElementById('levelSlider').value);
+    document.getElementById('sliderNum').textContent = val;
+    const hints = { 1:'Closest people. No filter.', 2:'Casual. Someone you know.', 3:'Friendly with a purpose.', 4:'Warm and professional.', 5:'Standard professional.', 6:'More formal. Business context.', 7:'Making a case or a pitch.', 8:'Formal presentations or reports.', 9:'Grants, official submissions.', 10:'Legal or institutional.' };
+    document.getElementById('sliderDesc').textContent = state.levelDefs[val] || hints[val] || '';
+  }
+
+  function addSample() {
+    const text = document.getElementById('sampleText').value.trim();
+    const context = document.getElementById('sampleContext').value.trim();
+    const recipient = document.getElementById('sampleRecipient').value.trim();
+    const level = parseInt(document.getElementById('levelSlider').value);
+    if (!text) { alert('Paste a sample before adding.'); return; }
+    state.samples.push({ text, context, recipient, level, id: Date.now() });
+    renderSamples();
+    clearSampleForm();
+  }
+
+  function clearSampleForm() {
+    document.getElementById('sampleText').value = '';
+    document.getElementById('sampleContext').value = '';
+    document.getElementById('sampleRecipient').value = '';
+    document.getElementById('levelSlider').value = 5;
+    updateSlider();
+  }
+
+  function deleteSample(id) {
+    state.samples = state.samples.filter(s => s.id !== id);
+    renderSamples();
+  }
+
+  function esc(t) { return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+  function renderSamples() {
+    const el = document.getElementById('samplesList');
+    if (!state.samples.length) {
+      el.innerHTML = '<div class="empty-state">No samples yet. Paste your first one below.</div>';
+      return;
+    }
+    el.innerHTML = state.samples.map(s => `
+      <div class="sample-card">
+        <button class="sample-card-delete" onclick="deleteSample(${s.id})">✕</button>
+        <div class="sample-card-meta">Level ${s.level}&nbsp;&nbsp;·&nbsp;&nbsp;${esc(s.context || 'No category')}${s.recipient ? '&nbsp;&nbsp;·&nbsp;&nbsp;To: ' + esc(s.recipient) : ''}</div>
+        <div class="sample-card-text">${esc(s.text)}</div>
+      </div>
+    `).join('');
+  }
+
+  function buildOutput() {
+    const name = document.getElementById('clientName').value.trim() || 'Client';
+    const role = document.getElementById('clientRole').value.trim();
+    const types = getSelectedCommTypes();
+    let out = '';
+    out += '════════════════════════════════════════\n';
+    out += 'SALLY — VOICE PROFILE\n';
+    out += '════════════════════════════════════════\n\n';
+    out += 'NAME: ' + name + '\n';
+    if (role) out += 'ROLE: ' + role + '\n';
+    out += 'BUILT: ' + new Date().toLocaleDateString('en-US', { year:'numeric', month:'long', day:'numeric' }) + '\n\n';
+
+    out += '────────────────────────────────────────\n';
+    out += 'COMMUNICATION TYPES\n';
+    out += '────────────────────────────────────────\n';
+    types.length ? types.forEach(t => out += '  · ' + t + '\n') : out += '  (none selected)\n';
+    out += '\n';
+
+    out += '────────────────────────────────────────\n';
+    out += 'FORMAT LIBRARY\n';
+    out += '────────────────────────────────────────\n\n';
+    const withContent = types.filter(t => state.formatDefs[t]);
+    if (!withContent.length) {
+      out += '  (no format descriptions provided)\n\n';
+    } else {
+      withContent.forEach(t => { out += t.toUpperCase() + '\n' + state.formatDefs[t] + '\n\n'; });
+    }
+
+    out += '────────────────────────────────────────\n';
+    out += 'LEVEL DEFINITIONS\n';
+    out += '────────────────────────────────────────\n';
+    const anyDefs = Object.values(state.levelDefs).some(v => v);
+    if (anyDefs) {
+      for (let i = 1; i <= 10; i++) { if (state.levelDefs[i]) out += '  Level ' + i + ': ' + state.levelDefs[i] + '\n'; }
+    } else {
+      out += '  (not defined — samples will establish the range)\n';
+    }
+    out += '\n';
+
+    out += '────────────────────────────────────────\n';
+    out += 'VOICE SAMPLES (' + state.samples.length + ')\n';
+    out += '────────────────────────────────────────\n\n';
+    if (!state.samples.length) {
+      out += '  (no samples added)\n';
+    } else {
+      state.samples.forEach((s, i) => {
+        out += 'SAMPLE ' + (i + 1) + '\n';
+        out += 'Level: ' + s.level + '\n';
+        if (s.context) out += 'Type: ' + s.context + '\n';
+        if (s.recipient) out += 'To: ' + s.recipient + '\n';
+        out += '\n' + s.text + '\n\n---\n\n';
+      });
+    }
+
+    out += '════════════════════════════════════════\n';
+    out += 'END OF SALLY PROFILE — ' + name.toUpperCase() + '\n';
+    out += '════════════════════════════════════════\n';
+    document.getElementById('outputBlock').textContent = out;
+  }
+
+  function copyAll() {
+    navigator.clipboard.writeText(document.getElementById('outputBlock').textContent).then(() => {
+      const c = document.getElementById('copyConfirm');
+      c.classList.add('show');
+      setTimeout(() => c.classList.remove('show'), 2500);
+    });
+  }
+
+  renderSamples();
+  updateSlider();
+  updateProgress();
+</script>
+</body>
+</html>
