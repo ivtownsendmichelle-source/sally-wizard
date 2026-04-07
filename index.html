@@ -69,9 +69,20 @@
   .sample-card-delete:hover { color: #b04040; }
   .empty-state { text-align: center; padding: 40px 20px; color: var(--muted); font-style: italic; font-size: 0.9rem; border: 1px dashed var(--rule); border-radius: 6px; margin-bottom: 20px; }
   .sample-entry-box { background: white; border: 1px solid var(--rule); border-radius: 6px; padding: 20px; margin-bottom: 20px; }
-  .output-block { background: white; border: 1px solid var(--rule); border-radius: 6px; padding: 28px; font-family: 'DM Mono', monospace; font-size: 0.78rem; line-height: 1.9; white-space: pre-wrap; word-break: break-word; color: var(--ink); max-height: 600px; overflow-y: auto; }
+
+  /* OUTPUT TABS */
+  .tab-row { display: flex; gap: 0; border-bottom: 2px solid var(--rule); margin-bottom: 24px; }
+  .tab { padding: 10px 24px; font-size: 0.85rem; font-weight: 500; cursor: pointer; border: none; background: transparent; color: var(--muted); border-bottom: 2px solid transparent; margin-bottom: -2px; transition: all 0.15s; font-family: 'DM Sans', sans-serif; }
+  .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  .output-block { background: white; border: 1px solid var(--rule); border-radius: 6px; padding: 28px; font-family: 'DM Mono', monospace; font-size: 0.78rem; line-height: 1.9; white-space: pre-wrap; word-break: break-word; color: var(--ink); max-height: 500px; overflow-y: auto; }
   .copy-confirm { display: none; font-family: 'DM Mono', monospace; font-size: 0.72rem; color: var(--success); letter-spacing: 0.08em; text-transform: uppercase; margin-left: 12px; }
   .copy-confirm.show { display: inline; }
+
+  .output-section-label { font-family: 'DM Mono', monospace; font-size: 0.65rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--muted); margin-bottom: 10px; }
+
   @media (max-width: 500px) { .wordmark { font-size: 2rem; } h2 { font-size: 1.3rem; } .level-number { font-size: 2.2rem; } }
 </style>
 </head>
@@ -86,11 +97,11 @@
     <div class="step-label">Introduction</div>
     <h2>What is Sally?</h2>
     <p class="body">Sally is a voice profile. It's a collection of real writing samples from your life, organized by who you're talking to and how formal you're being.</p>
-    <p class="body">Once your Sally is built, it can teach an AI writing assistant to sound like you. Not a generic version of professional. Not a chatbot. You.</p>
+    <p class="body">Once your Sally is built, it teaches an AI writing assistant to sound like you. Not a generic version of professional. Not a chatbot. You.</p>
     <div class="callout">
       The way you text your best friend and the way you email your biggest client are both you. Sally captures both ends of that range and everything in between. You define what each level means. You describe how each format works. The whole thing is built around how you actually write.
     </div>
-    <p class="body">This wizard walks you through it in five steps. There are no wrong answers. The more honest your samples, the better Sally works.</p>
+    <p class="body">This wizard walks you through it in five steps. There are no wrong answers. The more honest your samples, the better it works.</p>
     <div class="btn-row">
       <button class="btn btn-primary" onclick="goTo(2)">Let's build it</button>
     </div>
@@ -100,7 +111,7 @@
   <div class="step" id="step-2">
     <div class="step-label">Step 1 of 5</div>
     <h2>First, who are we building this for?</h2>
-    <p class="body">This goes into your profile so the person helping you set this up knows whose voice they're working with.</p>
+    <p class="body">This helps personalize everything that follows.</p>
     <label>Your name</label>
     <input type="text" id="clientName" placeholder="First name is fine" />
     <label>Your work or role (optional)</label>
@@ -115,7 +126,7 @@
   <div class="step" id="step-3">
     <div class="step-label">Step 2 of 5</div>
     <h2>What kinds of writing do you do?</h2>
-    <p class="body">Pick everything that applies. These become the categories your samples will live in. Add your own if something isn't listed.</p>
+    <p class="body">Pick everything that applies. Add your own if something isn't listed.</p>
     <div class="chip-grid" id="commTypeChips">
       <div class="chip" onclick="toggleChip(this)">Texts to family</div>
       <div class="chip" onclick="toggleChip(this)">Texts to friends</div>
@@ -183,7 +194,7 @@
     <div class="step-label">Step 5 of 5</div>
     <h2>Now paste in your samples.</h2>
     <p class="body">Find something you actually wrote. A text, an email, a post. Copy it and paste it here. Then tell us what it was, who it was for, and what level it feels like.</p>
-    <p class="body">Add as many as you want. Aim for at least five. The more you add, the more accurate your Sally will be.</p>
+    <p class="body">Add as many as you want. Aim for at least five. The more you add, the better this works.</p>
     <div id="samplesList"></div>
     <div class="sample-entry-box">
       <label>Paste your sample here</label>
@@ -212,17 +223,36 @@
 
   <!-- STEP 7: OUTPUT -->
   <div class="step" id="step-7">
-    <div class="step-label">Your Sally Profile</div>
-    <h2>Here's your Sally.</h2>
-    <p class="body">Copy this and send it to whoever is setting up your AI writing assistant. They'll use it to make sure the output sounds like you.</p>
-    <div class="btn-row" style="margin-top:0; margin-bottom:16px;">
-      <button class="btn btn-primary" onclick="copyAll()">Copy full profile</button>
-      <span class="copy-confirm" id="copyConfirm">Copied.</span>
-      <button class="btn btn-ghost" onclick="goTo(6)">Go back and add more</button>
+    <div class="step-label">You're done.</div>
+    <h2>Your writing assistant is ready.</h2>
+    <p class="body">You have two things below. The first is your voice profile for your own records. The second is what you'll paste into Claude to set up your writing assistant.</p>
+    <p class="body">Follow the setup instructions your consultant sent you to get this running in about five minutes.</p>
+
+    <div class="tab-row">
+      <button class="tab active" onclick="switchTab('profile')">Voice Profile</button>
+      <button class="tab" onclick="switchTab('prompt')">Claude Setup (paste this)</button>
     </div>
-    <div class="output-block" id="outputBlock"></div>
-    <div class="btn-row">
-      <button class="btn btn-secondary" onclick="copyAll()">Copy again</button>
+
+    <div class="tab-panel active" id="panel-profile">
+      <div class="output-section-label">Your voice profile — for your records</div>
+      <div class="btn-row" style="margin-top:0; margin-bottom:14px;">
+        <button class="btn btn-secondary" onclick="copyPanel('profileBlock', 'confirmProfile')">Copy profile</button>
+        <span class="copy-confirm" id="confirmProfile">Copied.</span>
+      </div>
+      <div class="output-block" id="profileBlock"></div>
+    </div>
+
+    <div class="tab-panel" id="panel-prompt">
+      <div class="output-section-label">Paste this into Claude as your system prompt</div>
+      <div class="btn-row" style="margin-top:0; margin-bottom:14px;">
+        <button class="btn btn-primary" onclick="copyPanel('promptBlock', 'confirmPrompt')">Copy system prompt</button>
+        <span class="copy-confirm" id="confirmPrompt">Copied.</span>
+      </div>
+      <div class="output-block" id="promptBlock"></div>
+    </div>
+
+    <div class="btn-row" style="margin-top: 32px;">
+      <button class="btn btn-ghost" onclick="goTo(6)">Go back and add more samples</button>
     </div>
   </div>
 
@@ -244,6 +274,13 @@
     document.getElementById('step-' + n).classList.add('active');
     updateProgress();
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function switchTab(name) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    document.getElementById('panel-' + name).classList.add('active');
+    event.target.classList.add('active');
   }
 
   function toggleChip(el) { el.classList.toggle('selected'); }
@@ -274,7 +311,7 @@
       if (lbl && ta) existing[lbl.textContent] = ta.value;
     });
     container.innerHTML = '';
-    if (types.length === 0) {
+    if (!types.length) {
       container.innerHTML = '<p class="body" style="color:var(--muted);font-style:italic;">No communication types selected yet. Go back and pick a few.</p>';
       return;
     }
@@ -379,68 +416,131 @@
   }
 
   function buildOutput() {
-    const name = document.getElementById('clientName').value.trim() || 'Client';
+    const name = document.getElementById('clientName').value.trim() || 'this person';
     const role = document.getElementById('clientRole').value.trim();
     const types = getSelectedCommTypes();
-    let out = '';
-    out += '════════════════════════════════════════\n';
-    out += 'SALLY — VOICE PROFILE\n';
-    out += '════════════════════════════════════════\n\n';
-    out += 'NAME: ' + name + '\n';
-    if (role) out += 'ROLE: ' + role + '\n';
-    out += 'BUILT: ' + new Date().toLocaleDateString('en-US', { year:'numeric', month:'long', day:'numeric' }) + '\n\n';
+    const defs = state.levelDefs;
+    const formats = state.formatDefs;
+    const samples = state.samples;
 
-    out += '────────────────────────────────────────\n';
-    out += 'COMMUNICATION TYPES\n';
-    out += '────────────────────────────────────────\n';
-    types.length ? types.forEach(t => out += '  · ' + t + '\n') : out += '  (none selected)\n';
-    out += '\n';
-
-    out += '────────────────────────────────────────\n';
-    out += 'FORMAT LIBRARY\n';
-    out += '────────────────────────────────────────\n\n';
-    const withContent = types.filter(t => state.formatDefs[t]);
+    // PROFILE OUTPUT
+    let profile = '';
+    profile += '════════════════════════════════════════\n';
+    profile += 'SALLY — VOICE PROFILE\n';
+    profile += '════════════════════════════════════════\n\n';
+    profile += 'NAME: ' + name + '\n';
+    if (role) profile += 'ROLE: ' + role + '\n';
+    profile += 'BUILT: ' + new Date().toLocaleDateString('en-US', { year:'numeric', month:'long', day:'numeric' }) + '\n\n';
+    profile += '────────────────────────────────────────\n';
+    profile += 'COMMUNICATION TYPES\n';
+    profile += '────────────────────────────────────────\n';
+    types.length ? types.forEach(t => profile += '  · ' + t + '\n') : profile += '  (none selected)\n';
+    profile += '\n';
+    profile += '────────────────────────────────────────\n';
+    profile += 'FORMAT LIBRARY\n';
+    profile += '────────────────────────────────────────\n\n';
+    const withContent = types.filter(t => formats[t]);
     if (!withContent.length) {
-      out += '  (no format descriptions provided)\n\n';
+      profile += '  (no format descriptions provided)\n\n';
     } else {
-      withContent.forEach(t => { out += t.toUpperCase() + '\n' + state.formatDefs[t] + '\n\n'; });
+      withContent.forEach(t => { profile += t.toUpperCase() + '\n' + formats[t] + '\n\n'; });
     }
-
-    out += '────────────────────────────────────────\n';
-    out += 'LEVEL DEFINITIONS\n';
-    out += '────────────────────────────────────────\n';
-    const anyDefs = Object.values(state.levelDefs).some(v => v);
+    profile += '────────────────────────────────────────\n';
+    profile += 'LEVEL DEFINITIONS\n';
+    profile += '────────────────────────────────────────\n';
+    const anyDefs = Object.values(defs).some(v => v);
     if (anyDefs) {
-      for (let i = 1; i <= 10; i++) { if (state.levelDefs[i]) out += '  Level ' + i + ': ' + state.levelDefs[i] + '\n'; }
+      for (let i = 1; i <= 10; i++) { if (defs[i]) profile += '  Level ' + i + ': ' + defs[i] + '\n'; }
     } else {
-      out += '  (not defined — samples will establish the range)\n';
+      profile += '  (not defined — samples establish the range)\n';
     }
-    out += '\n';
-
-    out += '────────────────────────────────────────\n';
-    out += 'VOICE SAMPLES (' + state.samples.length + ')\n';
-    out += '────────────────────────────────────────\n\n';
-    if (!state.samples.length) {
-      out += '  (no samples added)\n';
+    profile += '\n';
+    profile += '────────────────────────────────────────\n';
+    profile += 'VOICE SAMPLES (' + samples.length + ')\n';
+    profile += '────────────────────────────────────────\n\n';
+    if (!samples.length) {
+      profile += '  (no samples added)\n';
     } else {
-      state.samples.forEach((s, i) => {
-        out += 'SAMPLE ' + (i + 1) + '\n';
-        out += 'Level: ' + s.level + '\n';
-        if (s.context) out += 'Type: ' + s.context + '\n';
-        if (s.recipient) out += 'To: ' + s.recipient + '\n';
-        out += '\n' + s.text + '\n\n---\n\n';
+      samples.forEach((s, i) => {
+        profile += 'SAMPLE ' + (i + 1) + '\n';
+        profile += 'Level: ' + s.level + '\n';
+        if (s.context) profile += 'Type: ' + s.context + '\n';
+        if (s.recipient) profile += 'To: ' + s.recipient + '\n';
+        profile += '\n' + s.text + '\n\n---\n\n';
+      });
+    }
+    profile += '════════════════════════════════════════\n';
+    profile += 'END OF SALLY PROFILE — ' + name.toUpperCase() + '\n';
+    profile += '════════════════════════════════════════\n';
+    document.getElementById('profileBlock').textContent = profile;
+
+    // SYSTEM PROMPT OUTPUT
+    const firstName = name.split(' ')[0];
+    let prompt = '';
+    prompt += 'You are ' + firstName + '\'s writing assistant. Your only job is to write in ' + firstName + '\'s voice.\n\n';
+
+    prompt += 'HOW THIS WORKS\n';
+    prompt += firstName + ' will give you three things: a number from 1 to 10, who they\'re writing to, and what they want to say. You write it. That\'s the whole job.\n\n';
+    prompt += 'Example: "5, email to my accountant about moving our meeting"\n';
+    prompt += 'Example: "2, text to my cousin just checking in"\n';
+    prompt += 'Example: "7, LinkedIn post about why I started my business"\n\n';
+
+    prompt += 'THE NUMBER\n';
+    prompt += 'The number is a formality level. 1 is the most casual ' + firstName + ' ever writes. 10 is the most formal.\n\n';
+
+    const levelEntries = [];
+    for (let i = 1; i <= 10; i++) { if (defs[i]) levelEntries.push('Level ' + i + ': ' + defs[i]); }
+    if (levelEntries.length) {
+      prompt += firstName + ' defined these levels:\n';
+      levelEntries.forEach(l => { prompt += '  ' + l + '\n'; });
+      prompt += '\n';
+    } else {
+      prompt += 'Use the voice samples below to understand what each level sounds like for ' + firstName + '.\n\n';
+    }
+
+    if (withContent.length) {
+      prompt += 'FORMAT RULES\n';
+      prompt += 'When ' + firstName + ' asks for one of these formats, follow these structures:\n\n';
+      withContent.forEach(t => {
+        prompt += t.toUpperCase() + '\n';
+        prompt += formats[t] + '\n\n';
       });
     }
 
-    out += '════════════════════════════════════════\n';
-    out += 'END OF SALLY PROFILE — ' + name.toUpperCase() + '\n';
-    out += '════════════════════════════════════════\n';
-    document.getElementById('outputBlock').textContent = out;
+    prompt += 'VOICE RULES\n';
+    prompt += 'These rules apply at every level:\n';
+    prompt += '- Write in ' + firstName + '\'s voice, not in generic professional language.\n';
+    prompt += '- Never use filler phrases like "I hope this finds you well" or "Certainly!" or "I\'d be happy to help."\n';
+    prompt += '- No em dashes. Use a period or restructure the sentence.\n';
+    prompt += '- Active voice always. "I will send it" not "It will be sent."\n';
+    prompt += '- Vary sentence length. Short and long together.\n';
+    prompt += '- No triplets. Not "Fast. Simple. Effective." Write a sentence.\n';
+    prompt += '- Close with an open door, not a pitch.\n';
+    prompt += '- Never add a signature. ' + firstName + ' handles that.\n\n';
+
+    if (samples.length) {
+      prompt += 'VOICE SAMPLES\n';
+      prompt += 'These are real examples of how ' + firstName + ' writes. Study the rhythm, the word choices, the sentence structure. This is the voice you are matching.\n\n';
+      samples.forEach((s, i) => {
+        prompt += 'SAMPLE ' + (i + 1) + ' — Level ' + s.level;
+        if (s.context) prompt += ' — ' + s.context;
+        if (s.recipient) prompt += ' — To: ' + s.recipient;
+        prompt += '\n\n' + s.text + '\n\n---\n\n';
+      });
+    }
+
+    prompt += 'OUTPUT RULES\n';
+    prompt += '- Deliver only the finished writing. No preamble, no explanation, no "here\'s a draft."\n';
+    prompt += '- If something is unclear, ask one question before writing. Not multiple.\n';
+    prompt += '- Check your work before presenting it. Wrong level, wrong voice, wrong format means rewrite.\n';
+
+    document.getElementById('promptBlock').textContent = prompt;
   }
 
-  function copyAll() {
-    navigator.clipboard.writeText(document.getElementById('outputBlock').textContent).then(() => {
-      const c = document.getElementById('copyConfirm');
+  function copyPanel(blockId, confirmId) {
+    const text = document.getElementById(blockId).textContent;
+    navigator.clipboard.writeText(text).then(() => {
+      const c = document.getElementById(confirmId);
       c.classList.add('show');
       setTimeout(() => c.classList.remove('show'), 2500);
     });
