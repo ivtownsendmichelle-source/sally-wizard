@@ -4,6 +4,14 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Sally — Your Voice Profile Builder</title>
+<!-- Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-XXXXXXXXXX');
+</script>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -268,7 +276,7 @@
   function goTo(n) {
     if (n === 4) buildFormatDefs();
     if (n === 5) { saveFormatDefs(); buildLevelDefs(); }
-    if (n === 7) { saveLevelDefs(); buildOutput(); }
+    if (n === 7) { saveLevelDefs(); buildOutput(); gtag('event', 'voice_profile_complete', { event_category: 'conversion', event_label: 'Voice Profile Generated' }); }
     document.getElementById('step-' + state.current).classList.remove('active');
     state.current = n;
     document.getElementById('step-' + n).classList.add('active');
